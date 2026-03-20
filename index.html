@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0B0C10">
+    <title>NEET Master Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0B0C10;
+            --bg-accent: #1F2833;
+            --gold: #FFC107;
+            --gold-glow: rgba(255, 193, 7, 0.4);
+            --text-main: #C5C6C7;
+            --text-bright: #FFFFFF;
+            --correct: #45A29E;
+            --wrong: #E02401;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            color: var(--text-bright);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Floating Background */
+        .bg-bubbles {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .bubble {
+            position: absolute;
+            bottom: -50px;
+            font-size: 2rem;
+            animation: floatUp linear infinite;
+            opacity: 0.15;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* App Layout */
+        #game-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            z-index: 1; /* Above background */
+        }
+
+        .header {
+            text-align: center;
+            padding: 15px 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer {
+            font-size: 2.8rem;
+            color: var(--gold);
+            font-weight: 800;
+            text-shadow: 0 0 15px var(--gold-glow);
+            background: rgba(31, 40, 51, 0.6);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 2px solid var(--gold);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .timer.danger {
+            color: var(--wrong);
+            border-color: var(--wrong);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Glassmorphism Containers */
+        .question-container {
+            margin: 10px 20px;
+            padding: 25px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            line-height: 1.5;
+            color: var(--text-bright);
+        }
+
+        .options-container {
+            padding: 0 20px 10px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: rgba(31, 40, 51, 0.8);
+            backdrop-filter: blur(5px);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 15px;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .option-btn span.letter {
+            color: var(--gold);
+            font-weight: 800;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px var(--gold-glow);
+        }
+
+        .option-btn:active {
+            transform: scale(0.97);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: rgba(11, 12, 16, 0.9);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .score {
+            font-size: 1.2rem;
+            color: var(--gold);
+            font-weight: 800;
+        }
+
+        .sponsor-banner {
+            background: linear-gradient(90deg, #D4AF37, #FFD700);
+            color: #000;
+            text-align: center;
+            padding: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            display: block;
+            font-size: 0.95rem;
+            z-index: 2;
+        }
+
+        #loading-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+        }
+
+        .loader {
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top: 5px solid var(--gold);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="bg-bubbles" id="bg-bubbles"></div>
+
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <h2 style="font-weight: 600;">Connecting to Database...</h2>
+        <p style="color: var(--text-main); margin-top: 10px;">Loading NEET Questions</p>
+    </div>
+
+    <div id="game-screen" style="display: none;">
+        <div class="header">
+            <div class="timer" id="timer">30</div>
+        </div>
+
+        <div class="question-container">
+            <div class="question-text" id="question-text">Loading question...</div>
+        </div>
+
+        <div class="options-container">
+            <button class="option-btn" id="btn-a" onclick="lockAnswer('A')"><span class="letter">A:</span> <div id="opt-a-text">Option</div></button>
+            <button class="option-btn" id="btn-b" onclick="lockAnswer('B')"><span class="letter">B:</span> <div id="opt-b-text">Option</div></button>
+            <button class="option-btn" id="btn-c" onclick="lockAnswer('C')"><span class="letter">C:</span> <div id="opt-c-text">Option</div></button>
+            <button class="option-btn" id="btn-d" onclick="lockAnswer('D')"><span class="letter">D:</span> <div id="opt-d-text">Option</div></button>
+        </div>
+
+        <div class="footer">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="question-count" id="question-count" style="color: var(--text-main); font-weight: 600;">Q: 1/123</div>
+        </div>
+        
+        <a href="https://ig.me/m/the_epic_verse" target="_blank" class="sponsor-banner">
+            🚀 Want to sponsor this app? Tap here to DM us on Instagram!
+        </a>
+    </div>
+
+    <script>
+        // Generate Floating Science Icons
+        const icons = ['🧬', '🔬', '🦠', '🌿', '⚛️', '🧪', '🧲', '🔭', '🪐', '🧠'];
+        const bubblesContainer = document.getElementById('bg-bubbles');
+        for(let i=0; i<18; i++) {
+            let el = document.createElement('div');
+            el.className = 'bubble';
+            el.innerText = icons[Math.floor(Math.random() * icons.length)];
+            el.style.left = Math.random() * 100 + '%';
+            el.style.animationDuration = (Math.random() * 12 + 8) + 's';
+            el.style.animationDelay = (Math.random() * 10) + 's';
+            el.style.fontSize = (Math.random() * 1.5 + 1.2) + 'rem';
+            bubblesContainer.appendChild(el);
+        }
+
+        // Live Google Sheets Connection
+        const sheetCSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQQTMdXwy6iBF5x_r3D71I80ebFMtkmzFqWiu0pYSW2wq2ZAZrDHcyS9B9K6EFEoymB8ntYWBEl274t/pub?output=csv";
+        let questions = [];
+        
+        // Bulletproof CSV Parser
+        function parseCSV(str) {
+            const arr = []; let quote = false; let row = 0, col = 0;
+            for (let c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                arr[row] = arr[row] || []; arr[row][col] = arr[row][col] || '';
+                if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+                if (cc == '"') { quote = !quote; continue; }
+                if (cc == ',' && !quote) { ++col; continue; }
+                if (cc == '\r' && nc == '\n' && !quote) { ++row; col = 0; ++c; continue; }
+                if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+                if (cc == '\r' && !quote) { ++row; col = 0; continue; }
+                arr[row][col] += cc;
+            }
+            return arr;
+        }
+
+        async function fetchQuestions() {
+            try {
+                const response = await fetch(sheetCSV_URL);
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                
+                // Read from Row 1 downwards (skipping headers on Row 0)
+                for (let i = 1; i < data.length; i++) {
+                    let row = data[i];
+                    // Skip empty rows to prevent crashes
+                    if (!row || row.length < 5) continue; 
+                    
+                    // Safely extract columns, defaulting to empty strings if blank
+                    let q = row[3] ? row[3].trim() : "";
+                    let a = row[4] ? row[4].trim() : "";
+                    let b = row[5] ? row[5].trim() : "";
+                    let c = row[6] ? row[6].trim() : "";
+                    let d = row[7] ? row[7].trim() : "";
+                    let ans = row[8] ? row[8].trim().toUpperCase() : "";
+
+                    // Only add to the game if a question and answer exist
+                    if (q !== "" && ans !== "") {
+                        questions.push({ q: q, a: a, b: b, c: c, d: d, correct: ans });
+                    }
+                }
+                
+                if(questions.length === 0) throw new Error("Sheet is empty or blocked.");
+                startGame();
+                
+            } catch (error) {
+                console.log("Local browser blocked the internet connection. Loading offline testing mode.");
+                // 5 Offline questions so you can test the game loop locally on your C: drive
+                questions = [
+                    { q: "Which enzyme is primarily used to join DNA fragments?", a: "DNA polymerase", b: "DNA ligase", c: "Helicase", d: "Endonuclease", correct: "B" },
+                    { q: "In a standard Mendelian dihybrid cross, what is the expected phenotypic ratio in the F2 generation?", a: "3:1", b: "1:2:1", c: "9:3:3:1", d: "1:1:1:1", correct: "C" },
+                    { q: "What is the primary function of restriction endonucleases in bacteria?", a: "To splice RNA", b: "To assist in DNA replication", c: "To defend against viral infection", d: "To synthesize proteins", correct: "C" },
+                    { q: "During the menstrual cycle, the surge of which hormone is primarily responsible for triggering ovulation?", a: "FSH", b: "Luteinizing Hormone (LH)", c: "Estrogen", d: "Progesterone", correct: "B" },
+                    { q: "The phenomenon where certain pollutants like DDT increase in concentration at successive trophic levels is known as:", a: "Eutrophication", b: "Biomagnification", c: "Bioaccumulation", d: "Bioremediation", correct: "B" }
+                ];
+                startGame();
+            }
+        }
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 30;
+        let timerInterval;
+        let isClickable = true;
+
+        const timerEl = document.getElementById('timer');
+        const buttons = { 
+            'A': document.getElementById('btn-a'), 
+            'B': document.getElementById('btn-b'), 
+            'C': document.getElementById('btn-c'), 
+            'D': document.getElementById('btn-d') 
+        };
+
+        function startGame() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                alert("Quiz Complete! Your Final Score: " + score);
+                location.reload(); return;
+            }
+
+            const currentQ = questions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = currentQ.q;
+            document.getElementById('opt-a-text').innerText = currentQ.a;
+            document.getElementById('opt-b-text').innerText = currentQ.b;
+            document.getElementById('opt-c-text').innerText = currentQ.c;
+            document.getElementById('opt-d-text').innerText = currentQ.d;
+            
+            document.getElementById('question-count').innerText = `Q: ${currentQuestionIndex + 1}/${questions.length}`;
+
+            Object.values(buttons).forEach(btn => {
+                btn.style.background = 'rgba(31, 40, 51, 0.8)';
+                btn.style.borderColor = 'rgba(255, 193, 7, 0.3)';
+                btn.style.color = 'var(--text-main)';
+            });
+            
+            timeLeft = 30;
+            timerEl.innerText = timeLeft;
+            timerEl.classList.remove('danger');
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            isClickable = true;
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            timerEl.innerText = timeLeft;
+            if (timeLeft <= 10) timerEl.classList.add('danger');
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                processAnswer('TIMEOUT'); 
+            }
+        }
+
+        function lockAnswer(selectedOption) {
+            if (!isClickable) return;
+            isClickable = false;
+            clearInterval(timerInterval);
+
+            buttons[selectedOption].style.background = 'var(--gold)';
+            buttons[selectedOption].style.color = '#000';
+            
+            setTimeout(() => { processAnswer(selectedOption); }, 1000);
+        }
+
+        function processAnswer(selectedOption) {
+            const currentQ = questions[currentQuestionIndex];
+            const correctOption = currentQ.correct;
+
+            if (selectedOption !== 'TIMEOUT') {
+                if (selectedOption === correctOption) {
+                    buttons[selectedOption].style.background = 'var(--correct)';
+                    buttons[selectedOption].style.color = '#fff';
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                } else {
+                    buttons[selectedOption].style.background = 'var(--wrong)';
+                    buttons[selectedOption].style.color = '#fff';
+                    buttons[correctOption].style.background = 'var(--correct)';
+                    buttons[correctOption].style.color = '#fff';
+                }
+            } else {
+                buttons[correctOption].style.background = 'var(--correct)';
+                buttons[correctOption].style.color = '#fff';
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 1500);
+        }
+
+        fetchQuestions();
+    </script>
+</body>
+</html>
